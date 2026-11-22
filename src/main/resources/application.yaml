@@ -1,0 +1,21 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: sport-service
+
+    # driver-class-name: org.postgresql.Driver
+  r2dbc:
+    url: "${SPRING_DATASOURCE_URL:r2dbc:postgresql://localhost:5432/sport-db}"
+    username: "${SPRING_DATASOURCE_USER:postgres}"
+    password: "${SPRING_DATASOURCE_PASS:postgres}"
+    driver-class-name: org.postgresql.Driver
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+      max-life-time: 1h
+      max-acquire-time: 10s
+      max-create-connection-time: 10s
+      validation-query: SELECT 1
