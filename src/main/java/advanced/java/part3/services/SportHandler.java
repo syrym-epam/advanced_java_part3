@@ -13,32 +13,31 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class SportHandler {
 
-    private final SportRepository sportRepository;
+        private final SportRepository sportRepository;
 
-    public Mono<ServerResponse> createSport(ServerRequest request) {
-        String sportName = request.pathVariable("sportname");
+        public Mono<ServerResponse> createSport(ServerRequest request) {
+                String sportName = request.pathVariable("sportname");
 
-        return sportRepository.findByName(sportName)
-                .flatMap(existing -> ServerResponse.badRequest()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue("{\"error\": \"Sport with name '" + sportName + "' already exists\"}"))
-                .switchIfEmpty(
-                        sportRepository.save(new Sport(null, sportName))
-                                .flatMap(savedSport -> ServerResponse.ok()
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .bodyValue(savedSport))
-                );
-    }
+                return sportRepository.findByName(sportName)
+                                .flatMap(existing -> ServerResponse.badRequest()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue("{\"error\": \"Sport with name '" + sportName
+                                                                + "' already exists\"}"))
+                                .switchIfEmpty(Mono.defer(() -> sportRepository.save(new Sport(null, sportName))
+                                                .flatMap(savedSport -> ServerResponse.ok()
+                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                .bodyValue(savedSport))));
+        }
 
-    public Mono<ServerResponse> searchSports(ServerRequest request) {
-        String query = request.queryParam("q").orElse("");
+        public Mono<ServerResponse> searchSports(ServerRequest request) {
+                String query = request.queryParam("q").orElse("");
 
-        var sportsFlux = query.isEmpty() 
-                ? sportRepository.findAll() 
-                : sportRepository.findByNameContainingIgnoreCase(query);
+                var sportsFlux = query.isEmpty()
+                                ? sportRepository.findAll()
+                                : sportRepository.findByNameContainingIgnoreCase(query);
 
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(sportsFlux, Sport.class);
-    }
+                return ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(sportsFlux, Sport.class);
+        }
 }
